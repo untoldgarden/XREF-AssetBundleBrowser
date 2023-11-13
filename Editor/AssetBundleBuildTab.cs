@@ -110,42 +110,42 @@ namespace AssetBundleBrowser
             }
             
             m_ToggleData = new List<ToggleData>();
-            m_ToggleData.Add(new ToggleData(
-                false,
-                "Exclude Type Information",
-                "Do not include type information within the asset bundle (don't write type tree).",
-                m_UserData.m_OnToggles,
-                BuildAssetBundleOptions.DisableWriteTypeTree));
+            // m_ToggleData.Add(new ToggleData(
+            //     false,
+            //     "Exclude Type Information",
+            //     "Do not include type information within the asset bundle (don't write type tree).",
+            //     m_UserData.m_OnToggles,
+            //     BuildAssetBundleOptions.DisableWriteTypeTree));
             m_ToggleData.Add(new ToggleData(
                 false,
                 "Force Rebuild",
                 "Force rebuild the asset bundles",
                 m_UserData.m_OnToggles,
                 BuildAssetBundleOptions.ForceRebuildAssetBundle));
-            m_ToggleData.Add(new ToggleData(
-                false,
-                "Ignore Type Tree Changes",
-                "Ignore the type tree changes when doing the incremental build check.",
-                m_UserData.m_OnToggles,
-                BuildAssetBundleOptions.IgnoreTypeTreeChanges));
-            m_ToggleData.Add(new ToggleData(
-                false,
-                "Append Hash",
-                "Append the hash to the assetBundle name.",
-                m_UserData.m_OnToggles,
-                BuildAssetBundleOptions.AppendHashToAssetBundleName));
-            m_ToggleData.Add(new ToggleData(
-                false,
-                "Strict Mode",
-                "Do not allow the build to succeed if any errors are reporting during it.",
-                m_UserData.m_OnToggles,
-                BuildAssetBundleOptions.StrictMode));
-            m_ToggleData.Add(new ToggleData(
-                false,
-                "Dry Run Build",
-                "Do a dry run build.",
-                m_UserData.m_OnToggles,
-                BuildAssetBundleOptions.DryRunBuild));
+            // m_ToggleData.Add(new ToggleData(
+            //     false,
+            //     "Ignore Type Tree Changes",
+            //     "Ignore the type tree changes when doing the incremental build check.",
+            //     m_UserData.m_OnToggles,
+            //     BuildAssetBundleOptions.IgnoreTypeTreeChanges));
+            // m_ToggleData.Add(new ToggleData(
+            //     false,
+            //     "Append Hash",
+            //     "Append the hash to the assetBundle name.",
+            //     m_UserData.m_OnToggles,
+            //     BuildAssetBundleOptions.AppendHashToAssetBundleName));
+            // m_ToggleData.Add(new ToggleData(
+            //     false,
+            //     "Strict Mode",
+            //     "Do not allow the build to succeed if any errors are reporting during it.",
+            //     m_UserData.m_OnToggles,
+            //     BuildAssetBundleOptions.StrictMode));
+            // m_ToggleData.Add(new ToggleData(
+            //     false,
+            //     "Dry Run Build",
+            //     "Do a dry run build.",
+            //     m_UserData.m_OnToggles,
+            //     BuildAssetBundleOptions.DryRunBuild));
 
 
             m_ForceRebuild = new ToggleData(
@@ -153,11 +153,11 @@ namespace AssetBundleBrowser
                 "Clear Folders",
                 "Will wipe out all contents of build directory as well as StreamingAssets/AssetBundles if you are choosing to copy build there.",
                 m_UserData.m_OnToggles);
-            m_CopyToStreaming = new ToggleData(
-                false,
-                "Copy to StreamingAssets",
-                "After build completes, will copy all build content to " + m_streamingPath + " for use in stand-alone player.",
-                m_UserData.m_OnToggles);
+            // m_CopyToStreaming = new ToggleData(
+            //     false,
+            //     "Copy to StreamingAssets",
+            //     "After build completes, will copy all build content to " + m_streamingPath + " for use in stand-alone player.",
+            //     m_UserData.m_OnToggles);
 
             m_TargetContent = new GUIContent("Build Target", "Choose target platform to build for.");
             m_CompressionContent = new GUIContent("Compression", "Choose no compress, standard (LZMA), or chunk based (LZ4)");
@@ -229,17 +229,17 @@ namespace AssetBundleBrowser
                         m_UserData.m_OnToggles.Remove(m_ForceRebuild.content.text);
                     m_ForceRebuild.state = newState;
                 }
-                newState = GUILayout.Toggle(
-                    m_CopyToStreaming.state,
-                    m_CopyToStreaming.content);
-                if (newState != m_CopyToStreaming.state)
-                {
-                    if (newState)
-                        m_UserData.m_OnToggles.Add(m_CopyToStreaming.content.text);
-                    else
-                        m_UserData.m_OnToggles.Remove(m_CopyToStreaming.content.text);
-                    m_CopyToStreaming.state = newState;
-                }
+                // newState = GUILayout.Toggle(
+                //     m_CopyToStreaming.state,
+                //     m_CopyToStreaming.content);
+                // if (newState != m_CopyToStreaming.state)
+                // {
+                //     if (newState)
+                //         m_UserData.m_OnToggles.Add(m_CopyToStreaming.content.text);
+                //     else
+                //         m_UserData.m_OnToggles.Remove(m_CopyToStreaming.content.text);
+                //     m_CopyToStreaming.state = newState;
+                // }
             }
 
             // advanced options
@@ -250,16 +250,16 @@ namespace AssetBundleBrowser
                 {
                     var indent = EditorGUI.indentLevel;
                     EditorGUI.indentLevel = 1;
-                    CompressOptions cmp = (CompressOptions)EditorGUILayout.IntPopup(
-                        m_CompressionContent, 
-                        (int)m_UserData.m_Compression,
-                        m_CompressionOptions,
-                        m_CompressionValues);
+                    // CompressOptions cmp = (CompressOptions)EditorGUILayout.IntPopup(
+                    //     m_CompressionContent, 
+                    //     (int)m_UserData.m_Compression,
+                    //     m_CompressionOptions,
+                    //     m_CompressionValues);
 
-                    if (cmp != m_UserData.m_Compression)
-                    {
-                        m_UserData.m_Compression = cmp;
-                    }
+                    // if (cmp != m_UserData.m_Compression)
+                    // {
+                    //     m_UserData.m_Compression = cmp;
+                    // }
                     foreach (var tog in m_ToggleData)
                     {
                         newState = EditorGUILayout.ToggleLeft(
@@ -305,8 +305,8 @@ namespace AssetBundleBrowser
                 if (m_ForceRebuild.state)
                 {
                     string message = "Do you want to delete all files in the directory " + m_UserData.m_OutputPath;
-                    if (m_CopyToStreaming.state)
-                        message += " and " + m_streamingPath;
+                    // if (m_CopyToStreaming.state)
+                    //     message += " and " + m_streamingPath;
                     message += "?";
                     if (EditorUtility.DisplayDialog("File delete confirmation", message, "Yes", "No"))
                     {
@@ -315,9 +315,9 @@ namespace AssetBundleBrowser
                             if (Directory.Exists(m_UserData.m_OutputPath))
                                 Directory.Delete(m_UserData.m_OutputPath, true);
 
-                            if (m_CopyToStreaming.state)
-                            if (Directory.Exists(m_streamingPath))
-                                Directory.Delete(m_streamingPath, true);
+                            // if (m_CopyToStreaming.state)
+                            // if (Directory.Exists(m_streamingPath))
+                            //     Directory.Delete(m_streamingPath, true);
                         }
                         catch (System.Exception e)
                         {
@@ -356,12 +356,14 @@ namespace AssetBundleBrowser
                 m_InspectTab.RefreshBundles();
             };
 
-            AssetBundleModel.Model.DataSource.BuildAssetBundles (buildInfo);
+                AssetBundleModel.Model.DataSource.BuildAssetBundles (buildInfo);
 
-            AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
+                AssetDatabase.Refresh(ImportAssetOptions.ForceUpdate);
 
-            if(m_CopyToStreaming.state)
-                DirectoryCopy(m_UserData.m_OutputPath, m_streamingPath);
+
+
+            // if(m_CopyToStreaming.state)
+            //     DirectoryCopy(m_UserData.m_OutputPath, m_streamingPath);
         }
 
         private static void DirectoryCopy(string sourceDirName, string destDirName)
@@ -417,41 +419,41 @@ namespace AssetBundleBrowser
             //iPhone = -1,          --deprecated
             //BB10 = -1,            --deprecated
             //MetroPlayer = -1,     --deprecated
-            StandaloneOSXUniversal = 2,
-            StandaloneOSXIntel = 4,
-            StandaloneWindows = 5,
-            WebPlayer = 6,
-            WebPlayerStreamed = 7,
+            macOS = 2,
+            // StandaloneOSXIntel = 4,
+            Windows = 5,
+            // WebPlayer = 6,
+            // WebPlayerStreamed = 7,
             iOS = 9,
-            PS3 = 10,
-            XBOX360 = 11,
+            // PS3 = 10,
+            // XBOX360 = 11,
             Android = 13,
-            StandaloneLinux = 17,
-            StandaloneWindows64 = 19,
-            WebGL = 20,
-            WSAPlayer = 21,
-            StandaloneLinux64 = 24,
-            StandaloneLinuxUniversal = 25,
-            WP8Player = 26,
-            StandaloneOSXIntel64 = 27,
-            BlackBerry = 28,
-            Tizen = 29,
-            PSP2 = 30,
-            PS4 = 31,
-            PSM = 32,
-            XboxOne = 33,
-            SamsungTV = 34,
-            N3DS = 35,
-            WiiU = 36,
-            tvOS = 37,
-            Switch = 38
+            // StandaloneLinux = 17,
+            // StandaloneWindows64 = 19,
+            // WebGL = 20,
+            // WSAPlayer = 21,
+            // StandaloneLinux64 = 24,
+            // StandaloneLinuxUniversal = 25,
+            // WP8Player = 26,
+            // StandaloneOSXIntel64 = 27,
+            // BlackBerry = 28,
+            // Tizen = 29,
+            // PSP2 = 30,
+            // PS4 = 31,
+            // PSM = 32,
+            // XboxOne = 33,
+            // SamsungTV = 34,
+            // N3DS = 35,
+            // WiiU = 36,
+            // tvOS = 37,
+            // Switch = 38
         }
 
         [System.Serializable]
         internal class BuildTabData
         {
             internal List<string> m_OnToggles;
-            internal ValidBuildTarget m_BuildTarget = ValidBuildTarget.StandaloneWindows;
+            internal ValidBuildTarget m_BuildTarget = ValidBuildTarget.macOS;
             internal CompressOptions m_Compression = CompressOptions.StandardCompression;
             internal string m_OutputPath = string.Empty;
             internal bool m_UseDefaultPath = true;
