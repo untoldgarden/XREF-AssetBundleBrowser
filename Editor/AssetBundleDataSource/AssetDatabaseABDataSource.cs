@@ -129,7 +129,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
             bool patchIsEqual = false;
             string minCompatibleVersion = "";
             int compRes = 0;
-
+#if !MEADOW_HMD
             CheckUnityVersionCompatibility(uv, out majorMinorIsEqual, out patchIsEqual, out compRes, out minCompatibleVersion);
 
             if (compRes == -1)
@@ -154,6 +154,10 @@ namespace AssetBundleBrowser.AssetBundleDataSource
             {
                 return Build(info);
             }
+#else
+//TODO: check if the version is compatible with the HMD
+            return Build(info);
+#endif
 
 
 
