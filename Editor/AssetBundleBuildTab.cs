@@ -428,6 +428,7 @@ namespace AssetBundleBrowser
             // PS3 = 10,
             // XBOX360 = 11,
             Android = 13,
+            VisionOS = 47,
             // StandaloneLinux = 17,
             // StandaloneWindows64 = 19,
             // WebGL = 20,

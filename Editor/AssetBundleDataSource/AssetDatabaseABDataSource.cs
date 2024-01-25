@@ -10,6 +10,7 @@ using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using System.Collections;
 using UnityEngine.Networking;
+using System.CodeDom;
 
 namespace AssetBundleBrowser.AssetBundleDataSource
 {
@@ -127,10 +128,11 @@ namespace AssetBundleBrowser.AssetBundleDataSource
             bool majorMinorIsEqual = false;
             bool patchIsEqual = false;
             string minCompatibleVersion = "";
+            int compRes = 0;
 
-            CheckUnityVersionCompatibility(uv, out majorMinorIsEqual, out patchIsEqual, out minCompatibleVersion);
+            CheckUnityVersionCompatibility(uv, out majorMinorIsEqual, out patchIsEqual, out compRes, out minCompatibleVersion);
 
-            if (!majorMinorIsEqual)
+            if (compRes == -1)
             {
                 Debug.LogError("You are not using the correct version of Unity. Minimum compatible version: " + minCompatibleVersion + "; Recommended version: " + uv);
                 //show error popup
@@ -138,7 +140,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
                 return false;
             }
             // show working alert popup if the patch version is not equal
-            if (!patchIsEqual)
+            if (compRes >= 0 && !patchIsEqual)
             {
                 bool result = EditorUtility.DisplayDialog("Warning", "You are not using the recommended version of Unity. \n Unknown issues might occur. \n Recommended version: " + uv + ". \n Do you want to continue?", "Yes", "No");
                 if (!result)
@@ -146,7 +148,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
                     return false;
                 }
                 return Build(info);
-            
+
             }
             else
             {
@@ -159,112 +161,128 @@ namespace AssetBundleBrowser.AssetBundleDataSource
 
         public bool Build(ABBuildInfo info)
         {
+            //create folder callded Temp if it doesn't exist
+            if (!Directory.Exists("Assets/Temp"))
+            {
+                Directory.CreateDirectory("Assets/Temp");
+            }
+
+            // Path for the meta file - adjust as needed
+            string xrefVersion, xrefEBVersion, xrefLatestVersion, xrefEBLatestVersion;
+            CheckPackageVersion("com.untoldgarden.xref", out xrefVersion, out xrefLatestVersion);
+            CheckPackageVersion("com.untoldgarden.xref-experience-builder", out xrefEBVersion, out xrefEBLatestVersion);
+
+
+            int xrefCompare = ComparePackageVersion(xrefVersion, xrefLatestVersion);
+            int xrefEBCompare = ComparePackageVersion(xrefEBVersion, xrefEBLatestVersion);
+
+            //cancel if the latest  version is not installed
+            if (xrefCompare == -1 || xrefEBCompare == -1)
+            {
+                Debug.LogError("XREF and XREF Experience Builder must be updated to the latest  version. \n XREF: " + xrefVersion + " latest: " + xrefLatestVersion + "\n XREF Experience Builder: " + xrefEBVersion + " latest: " + xrefEBLatestVersion);
+                return false;
+            }
+
+            string metaFilePath = "Assets/Temp/XREFBundleMeta.txt";
+            if (xrefVersion == "ERROR" || xrefEBVersion == "ERROR")
+            {
+                Debug.LogError("Error while checking package versions");
+                return false;
+            }
+            if (xrefVersion == "NOT_FOUND" || xrefEBVersion == "NOT_FOUND")
+            {
+                Debug.LogError("Package not found. XREF and XREF Experience Builder must be installed.");
+                return false;
+            }
+            string meta = "com.untoldgarden.xref: " + xrefVersion + "\n" + "com.untoldgarden.xref-experience-builder: " + xrefEBVersion;
+            File.WriteAllText(metaFilePath, meta);
+            //import the meta file
+            AssetDatabase.ImportAsset(metaFilePath);
+
+            // Get all asset bundle names
+            string[] allBundleNames = AssetDatabase.GetAllAssetBundleNames();
+            List<AssetBundleBuild> buildMap = new List<AssetBundleBuild>();
+            List<string> tempMetafiles = new List<string>();
+            foreach (string bundleName in allBundleNames)
+            {
                 //create folder callded Temp if it doesn't exist
-                if (!Directory.Exists("Assets/Temp"))
+                if (!Directory.Exists($"Assets/Temp/{bundleName}"))
                 {
-                    Directory.CreateDirectory("Assets/Temp");
+                    Directory.CreateDirectory($"Assets/Temp/{bundleName}");
                 }
+                string newMetaFilePath = $"Assets/Temp/{bundleName}/XREFBundleMeta.txt";
+                File.Copy(metaFilePath, newMetaFilePath, overwrite: true);
+                tempMetafiles.Add(newMetaFilePath);
+                //import the meta file
+                AssetDatabase.ImportAsset(newMetaFilePath);
 
-                // Path for the meta file - adjust as needed
-                string xrefVersion, xrefEBVersion, xrefLatestVersion, xrefEBLatestVersion;
-                CheckPackageVersion("com.untoldgarden.xref", out xrefVersion, out xrefLatestVersion);
-                CheckPackageVersion("com.untoldgarden.xref-experience-builder", out xrefEBVersion, out xrefEBLatestVersion);
+                // Get all asset paths for each bundle
+                string[] assetPaths = AssetDatabase.GetAssetPathsFromAssetBundle(bundleName);
 
-                //cancel if the latest  version is not installed
-                if (xrefVersion != xrefLatestVersion || xrefEBVersion != xrefEBLatestVersion)
+                // Create a new AssetBundleBuild and set its properties
+                AssetBundleBuild buildEntry = new AssetBundleBuild();
+                buildEntry.assetBundleName = bundleName;
+
+                // Add the meta file to the list of assets
+                var assetList = new List<string>
                 {
-                    Debug.LogError("XREF and XREF Experience Builder must be updated to the latest  version.");
-                    return false;
-                }
-
-                string metaFilePath = "Assets/Temp/XREFBundleMeta.txt";
-                if (xrefVersion == "ERROR" || xrefEBVersion == "ERROR")
-                {
-                    Debug.LogError("Error while checking package versions");
-                    return false;
-                }
-                if (xrefVersion == "NOT_FOUND" || xrefEBVersion == "NOT_FOUND")
-                {
-                    Debug.LogError("Package not found. XREF and XREF Experience Builder must be installed.");
-                    return false;
-                }
-                string meta = "com.untoldgarden.xref: " + xrefVersion + "\n" + "com.untoldgarden.xref-experience-builder: " + xrefEBVersion;
-                File.WriteAllText(metaFilePath, meta);
-
-                // Get all asset bundle names
-                string[] allBundleNames = AssetDatabase.GetAllAssetBundleNames();
-                List<AssetBundleBuild> buildMap = new List<AssetBundleBuild>();
-                List<string> tempMetafiles = new List<string>();
-                foreach (string bundleName in allBundleNames)
-                {
-                    //create folder callded Temp if it doesn't exist
-                    if (!Directory.Exists($"Assets/Temp/{bundleName}"))
-                    {
-                        Directory.CreateDirectory($"Assets/Temp/{bundleName}");
-                    }
-                    string newMetaFilePath = $"Assets/Temp/{bundleName}/XREFBundleMeta.txt";
-                    File.Copy(metaFilePath, newMetaFilePath, overwrite: true);
-                    tempMetafiles.Add(newMetaFilePath);
-
-                    // Get all asset paths for each bundle
-                    string[] assetPaths = AssetDatabase.GetAssetPathsFromAssetBundle(bundleName);
-
-                    // Create a new AssetBundleBuild and set its properties
-                    AssetBundleBuild buildEntry = new AssetBundleBuild();
-                    buildEntry.assetBundleName = bundleName;
-
-                    // Add the meta file to the list of assets
-                    var assetList = new List<string>
-                {
-                    newMetaFilePath // Add meta file to each bundle
+                    newMetaFilePath
                 };
-                    Debug.Log("bundleName: " + bundleName + "added meta file: " + newMetaFilePath);
 
-                    foreach (string assetPath in assetPaths)
+                foreach (string assetPath in assetPaths)
+                {
+                    // Check if the asset is a script
+                    if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(MonoScript))
                     {
-                        // Check if the asset is a script
-                        if (AssetDatabase.GetMainAssetTypeAtPath(assetPath) == typeof(MonoScript))
-                        {
-                            // Skip adding this script to the asset bundle
-                            continue;
-                        }
-                        assetList.Add(assetPath);
+                        // Skip adding this script to the asset bundle
+                        continue;
                     }
-
-
-                    buildEntry.assetNames = assetList.ToArray();
-                    buildMap.Add(buildEntry);
+                    assetList.Add(assetPath);
                 }
 
 
-                // Build the asset bundles
-                var buildManifest = BuildPipeline.BuildAssetBundles(info.outputDirectory, buildMap.ToArray(), info.options, info.buildTarget);
+                buildEntry.assetNames = assetList.ToArray();
+                buildMap.Add(buildEntry);
+            }
 
-                // Delete the meta files
-                foreach (string metaFile in tempMetafiles)
+
+            // Build the asset bundles
+            var buildManifest = BuildPipeline.BuildAssetBundles(info.outputDirectory, buildMap.ToArray(), info.options, info.buildTarget);
+
+            // Delete the meta files
+            // foreach (string metaFile in tempMetafiles)
+            // {
+            //     File.Delete(metaFile);
+            //     //delete the Assets/Temp/{bundleName} folder if it exists
+            //     string folderPath = "Assets/Temp/" + Path.GetFileNameWithoutExtension(metaFile);
+            //     if (Directory.Exists(folderPath))
+            //         Directory.Delete(folderPath, true);
+            // }
+            foreach(string bundleName in allBundleNames)
+            {
+                //delete the Assets/Temp/{bundleName} folder if it exists
+                string folderPath = "Assets/Temp/" + bundleName;
+                if (Directory.Exists(folderPath))
+                    Directory.Delete(folderPath, true);
+            }
+            //delete the original meta file
+            File.Delete(metaFilePath);
+
+            // var buildManifest = BuildPipeline.BuildAssetBundles(info.outputDirectory, info.options, info.buildTarget);
+            if (buildManifest == null)
+            {
+                Debug.Log("Error in build");
+                return false;
+            }
+
+            foreach (var assetBundleName in buildManifest.GetAllAssetBundles())
+            {
+                if (info.onBuild != null)
                 {
-                    File.Delete(metaFile);
-                    //delete the Assets/Temp/{bundleName} folder if it exists
-                    string folderPath = "Assets/Temp/" + Path.GetFileNameWithoutExtension(metaFile);
-                    if (Directory.Exists(folderPath))
-                        Directory.Delete(folderPath, true);
+                    info.onBuild(assetBundleName);
                 }
-
-                // var buildManifest = BuildPipeline.BuildAssetBundles(info.outputDirectory, info.options, info.buildTarget);
-                if (buildManifest == null)
-                {
-                    Debug.Log("Error in build");
-                    return false;
-                }
-
-                foreach (var assetBundleName in buildManifest.GetAllAssetBundles())
-                {
-                    if (info.onBuild != null)
-                    {
-                        info.onBuild(assetBundleName);
-                    }
-                }
-                return true;
+            }
+            return true;
         }
 
 
@@ -363,11 +381,12 @@ namespace AssetBundleBrowser.AssetBundleDataSource
             }
         }
 
-        public void CheckUnityVersionCompatibility(string unityVersion, out bool majorMinorIsEqual, out bool patchIsEqual, out string minCompatibleVersion)
+        public void CheckUnityVersionCompatibility(string unityVersion, out bool majorMinorIsEqual, out bool patchIsEqual, out int compareResult, out string minCompatibleVersion)
         {
             majorMinorIsEqual = false;
             patchIsEqual = false;
             minCompatibleVersion = "";
+            compareResult = 0;
             //unity version format is 2023.1.0f1
             // major and minor version need to be equal between current unity version and provided unityVersion
             string[] unityVersionParts = unityVersion.Split('.')
@@ -394,11 +413,54 @@ namespace AssetBundleBrowser.AssetBundleDataSource
             int currentUnityVersionPatch = int.Parse(currentUnityVersionParts[2]);
             int unityVersionPatch = int.Parse(unityVersionParts[2]);
 
+            //set compare result to 0 if equal -1 if lesser or 1 if grater
+            compareResult = currentUnityVersionMajor.CompareTo(unityVersionMajor);
+            if (compareResult == 0)
+            {
+                compareResult = currentUnityVersionMinor.CompareTo(unityVersionMinor);
+                if (compareResult == 0)
+                {
+                    compareResult = currentUnityVersionPatch.CompareTo(unityVersionPatch);
+                }
+            }
+
+
             majorMinorIsEqual = currentUnityVersionMajor == unityVersionMajor && currentUnityVersionMinor == unityVersionMinor;
             patchIsEqual = currentUnityVersionPatch == unityVersionPatch;
             minCompatibleVersion = unityVersionMajor + "." + unityVersionMinor;
 
 
+        }
+
+        int ComparePackageVersion(string version, string otherVersion)
+        {
+            string[] versionParts = version.Split('.')
+                .Select(x => x.Trim())
+                .ToArray();
+            string[] otherVersionParts = otherVersion.Split('.')
+                .Select(x => x.Trim())
+                .ToArray();
+            if (versionParts.Length < 2)
+            {
+                Debug.LogError("Error parsing version");
+                return 0;
+            }
+            if (otherVersionParts.Length < 2)
+            {
+                Debug.LogError("Error parsing version");
+                return 0;
+            }
+            int versionMinor = int.Parse(versionParts[1]);
+            int otherVersionMinor = int.Parse(otherVersionParts[1]);
+            int versionMajor = int.Parse(versionParts[0]);
+            int otherVersionMajor = int.Parse(otherVersionParts[0]);
+            //set compare result to 0 if equal -1 if lesser or 1 if grater
+            int compareResult = versionMajor.CompareTo(otherVersionMajor);
+            if (compareResult == 0)
+            {
+                compareResult = versionMinor.CompareTo(otherVersionMinor);
+            }
+            return compareResult;
         }
     }
 }
