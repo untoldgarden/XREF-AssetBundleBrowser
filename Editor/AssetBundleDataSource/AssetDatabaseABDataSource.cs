@@ -167,6 +167,8 @@ namespace AssetBundleBrowser.AssetBundleDataSource
                 Directory.CreateDirectory("Assets/Temp");
             }
 
+            string metaFilePath = "Assets/Temp/XREFBundleMeta.txt";
+#if !MEADOW_HMD
             // Path for the meta file - adjust as needed
             string xrefVersion, xrefEBVersion, xrefLatestVersion, xrefEBLatestVersion;
             CheckPackageVersion("com.untoldgarden.xref", out xrefVersion, out xrefLatestVersion);
@@ -183,7 +185,6 @@ namespace AssetBundleBrowser.AssetBundleDataSource
                 return false;
             }
 
-            string metaFilePath = "Assets/Temp/XREFBundleMeta.txt";
             if (xrefVersion == "ERROR" || xrefEBVersion == "ERROR")
             {
                 Debug.LogError("Error while checking package versions");
@@ -195,6 +196,9 @@ namespace AssetBundleBrowser.AssetBundleDataSource
                 return false;
             }
             string meta = "com.untoldgarden.xref: " + xrefVersion + "\n" + "com.untoldgarden.xref-experience-builder: " + xrefEBVersion;
+#else
+            string meta = "com.untoldgarden.xref: 0.0.0\ncom.untoldgarden.xref-experience-builder: 0.0.0";
+#endif
             File.WriteAllText(metaFilePath, meta);
             //import the meta file
             AssetDatabase.ImportAsset(metaFilePath);
@@ -258,7 +262,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
             //     if (Directory.Exists(folderPath))
             //         Directory.Delete(folderPath, true);
             // }
-            foreach(string bundleName in allBundleNames)
+            foreach (string bundleName in allBundleNames)
             {
                 //delete the Assets/Temp/{bundleName} folder if it exists
                 string folderPath = "Assets/Temp/" + bundleName;
