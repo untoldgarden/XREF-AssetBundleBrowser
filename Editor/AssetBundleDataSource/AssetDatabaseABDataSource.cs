@@ -1,16 +1,12 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
-using UnityEngine.Assertions;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using UnityEditor.IMGUI.Controls;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using System.Collections;
 using UnityEngine.Networking;
-using System.CodeDom;
+using Newtonsoft.Json;
 
 namespace AssetBundleBrowser.AssetBundleDataSource
 {
@@ -117,7 +113,7 @@ namespace AssetBundleBrowser.AssetBundleDataSource
             string unityVersion = Application.unityVersion;
             Debug.Log("unityVersion: " + unityVersion);
             //parse the res json into dictionary
-            Dictionary<string, object> dict = Google.MiniJSON.Json.Deserialize(guidelines) as Dictionary<string, object>;
+            Dictionary<string, object> dict = JsonConvert.DeserializeObject<Dictionary<string, object>>(guidelines);
             if (dict == null)
             {
                 Debug.LogError("parse json failed");
